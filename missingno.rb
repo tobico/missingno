@@ -1,7 +1,7 @@
 class Module
-  def def_when regexp, &method
+  def def_when regexp, *args, &method
     missingno_init
-    @missingno_chain << [regexp, method]
+    @missingno_chain << [regexp, !method.nil? ? method : args[0]]
   end
   
   private
@@ -13,7 +13,12 @@ class Module
     old_method_missing = method :method_missing if method_defined? :method_missing
     define_method :method_missing do |sym, *args, &block|
       if item = chain.find { |item| item[0] === sym.to_s }
-        item[1].call *($~.to_a.slice(1..-1) + args), &block
+        a = $~.to_a.slice(1..-1) + args
+        if item[1].instance_of? Symbol
+          send item[1], *a, &block
+        else
+          instance_exec *a, &item[1]
+        end
       elsif defined? old_method_missing and old_method_missing.respond_to? :call
         old_method_missing.call sym, *args, &block
       else
@@ -26,7 +31,7 @@ class Module
       if chain.any? { |item| item[0] === sym.to_s }
         true
       elsif defined? old_respond_to and old_respond_to.respond_to? :call
-        old_respond_to.call sym, *args, &block
+        old_respond_to.call sym
       else
         super
       end
