@@ -5,8 +5,16 @@ class SingleClass
   def_when /^(foo|bar)$/, :test
 end
 
+class MMClass
+  def method_missing *args
+    "mmclass method_missing"
+  end
+  
+  def_when 'foo', :missingno
+end
+
 describe 'missingno' do
-  describe SingleClass, 'with a single class' do
+  describe 'with a single class' do
     subject { SingleClass.new }
     
     it 'should respond to symbols matching given regexp' do
@@ -24,6 +32,18 @@ describe 'missingno' do
       subject.should_receive(:test).with('foo')
       subject.foo
     end
+  end
+  
+  describe 'with a class that already has method_missing' do
+    subject { MMClass.new }
     
+    it 'should call missingno method when I call a matching method' do
+      subject.should_receive :missingno
+      subject.foo
+    end
+    
+    it 'should call original method_missing when I call a non-matching method' do
+      subject.zap.should == "mmclass method_missing"
+    end
   end
 end

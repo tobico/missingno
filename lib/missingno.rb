@@ -21,8 +21,12 @@ class Module
     old_method_missing = missingno_get_old_method :method_missing
     define_method :method_missing do |sym, *args, &block|
       if item = chain.find { |item| item[0] === sym.to_s }
-        a = $~.to_a.slice(1..-1) + args
-        if item[1].instance_of?(Symbol)
+        a = if item[0].is_a? Regexp
+          $~.to_a.slice(1..-1) + args
+        else
+          args
+        end
+        if item[1].is_a? Symbol
           if m = method(item[1])
             m.call *a, &block
           end
