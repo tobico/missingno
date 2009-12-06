@@ -1,2 +1,2 @@
-require 'spec/rake/spectask' 
-Spec::Rake::SpecTask.new 
+require 'spec/rake/spectask'
+Spec::Rake::SpecTask.new
