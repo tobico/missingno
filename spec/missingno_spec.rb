@@ -65,7 +65,7 @@ describe 'missingno' do
     end
     
     it 'should call method matched in mixin' do
-      subject.should_recieve :mm_zap
+      subject.should_receive :mm_zap
       subject.zap
     end
   end

@@ -4,7 +4,14 @@ class Module
     @missingno_chain << [regexp, !method.nil? ? method : args[0]]
   end
   
-  private
+  protected
+  
+  def missingno_merge_chain chain
+    missingno_init
+    @missingno_chain += chain
+  end
+  
+private
   
   def missingno_get_old_method method_name
     if method_defined? method_name
@@ -13,10 +20,10 @@ class Module
       nil
     end
   end
-  
+
   def missingno_init
-    return if defined? @missingno_chain
     chain = @missingno_chain = []
+    is_a_class = is_a? Class
 
     old_method_missing = missingno_get_old_method :method_missing
     define_method :method_missing do |sym, *args, &block|
@@ -35,7 +42,7 @@ class Module
         end
       elsif old_method_missing
         old_method_missing.bind(self).call(sym, *args, &block)
-      else
+      elsif is_a_class
         super
       end
     end
@@ -46,7 +53,7 @@ class Module
         true
       elsif old_respond_to
         old_respond_to.bind(self).call(sym, *args)
-      else
+      elsif is_a_class
         super
       end
     end
