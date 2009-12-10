@@ -27,7 +27,14 @@ private
 
     old_method_missing = missingno_get_old_method :method_missing
     define_method :method_missing do |sym, *args, &block|
-      if item = chain.find { |item| item[0] === sym.to_s }
+      item = chain.find do |item|
+        if item[0].respond_to? :include?
+          item[0].include? sym.to_s
+        else
+          item[0] === sym.to_s
+        end
+      end
+      if item
         a = if item[0].is_a? Regexp
           $~.to_a.slice(1..-1) + args
         else
