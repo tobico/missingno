@@ -1,17 +1,25 @@
 class Module
-  def def_when regexp, *args, &method
-    missingno_init
-    @missingno_chain << [regexp, !method.nil? ? method : args[0]]
-  end
   
-  protected
+  # Define a method_missing handler that matches given object.
+  #
+  # Specify either a block to call, or a second argument containing
+  # a symbol with the name of method to call.
+  #
+  # If the match object is a regular expression that contains sub-matches,
+  # these matches will be passed to the callback before any passed arguments.
+  #
+  # Blocks passed to this method may not themselves take a block argument
+  # or yield to a block.
   
-  def missingno_merge_chain chain
+  def def_when object, *args, &method
     missingno_init
-    @missingno_chain += chain
+    @missingno_chain << [object, !method.nil? ? method : args[0]]
   end
   
 private
+  
+  # Get the specified method as an UnboundMethod object, or nil if none
+  # exists
   
   def missingno_get_old_method method_name
     if method_defined? method_name
@@ -20,8 +28,13 @@ private
       nil
     end
   end
+  
+  # Initialize the missingno chain and override method_missing and respond_to?
+  # methods for class.
 
   def missingno_init
+    return if defined? @missingno_chain
+    
     chain = @missingno_chain = []
     is_a_class = is_a? Class
 
